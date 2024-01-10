@@ -11,9 +11,9 @@ import (
 var currentEnvMap = SioWSEnv{"test1": "test", "test2": "test2"}
 
 var happyEnvMap = SioWSEnv{
-	CurrentEnvKey: "test",
-	AppNameKey:    "go-webserver",
-	PortKey:       "8080",
+	EnvKeyCurrentEnv: "test",
+	EnvKeyAppName:    "go-webserver",
+	EnvKeyPort:       "8080",
 }
 
 func EnvSetup(t *testing.T) {
@@ -46,9 +46,9 @@ func TestNewEnvironment(t *testing.T) {
 	EnvCleanup(t)
 
 	env := NewEnvironment()
-	assert.Equalf(t, env.Value(CurrentEnvKey), "test", "expected %v, got %v", env.Value(CurrentEnvKey), "test")
-	assert.Equalf(t, env.Value(AppNameKey), "go-webserver", "expected %v, got %v", env.Value(AppNameKey), "go-webserver")
-	assert.Equalf(t, env.Value(PortKey), "8080", "expected %v, got %v", env.Value(PortKey), "8080")
+	assert.Equalf(t, env.Value(EnvKeyCurrentEnv), "test", "expected %v, got %v", env.Value(EnvKeyCurrentEnv), "test")
+	assert.Equalf(t, env.Value(EnvKeyAppName), "go-webserver", "expected %v, got %v", env.Value(EnvKeyAppName), "go-webserver")
+	assert.Equalf(t, env.Value(EnvKeyPort), "8080", "expected %v, got %v", env.Value(EnvKeyPort), "8080")
 
 	checkOsFunc()
 }

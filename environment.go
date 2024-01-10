@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	AppNameKey    = "APP_NAME"
-	CurrentEnvKey = "CURRENT_ENV"
-	PortKey       = "PORT"
+	EnvKeyAppName    = "APP_NAME"
+	EnvKeyCurrentEnv = "CURRENT_ENV"
+	EnvKeyPort       = "PORT"
+	EnvKeyLokiHost   = "LOKI_HOST"
 
 	DefaultFilePath    = "env/.env"
 	CurrentEnvFilePath = "env/%s.env"
@@ -111,7 +112,7 @@ func readEnvironmentSpecificFile(env string) SioWSEnv {
 // If the environment variable is not found, it raises an error and panics.
 // It returns the value of the `CURRENT_ENV` environment variable.
 func readCurrentEnv() string {
-	appName, ok := os.LookupEnv(CurrentEnvKey)
+	appName, ok := os.LookupEnv(EnvKeyCurrentEnv)
 	if !ok {
 		err := fmt.Errorf("new environment: %w", ErrNoCurrentEnv)
 
@@ -127,7 +128,7 @@ func readCurrentEnv() string {
 // If the environment variable is not found, it logs an error and panics with an error message.
 // It returns the value of the environment variable as a string.
 func readAppName() string {
-	appName, ok := os.LookupEnv(AppNameKey)
+	appName, ok := os.LookupEnv(EnvKeyAppName)
 	if !ok {
 		err := fmt.Errorf("new environment: %w", ErrNoAppName)
 
