@@ -26,17 +26,17 @@ var (
 	ErrNoCurrentEnv = errors.New("no CURRENT_ENV env var found")
 )
 
-// SioWSEnv is a type that represents a map of string key-value pairs for environment variables.
-type SioWSEnv map[string]string
+// Env is a type that represents a map of string key-value pairs for environment variables.
+type Env map[string]string
 
 // Value retrieves the value associated with the specified key in the SioWSEnv map.
 // If the key does not exist in the map, an empty string is returned.
-func (e SioWSEnv) Value(key string) string {
+func (e Env) Value(key string) string {
 	return e[key]
 }
 
 // Update modifies the value associated with the given key in the SioWSEnv map. If the key does not exist, a new key-value pair is added.
-func (e SioWSEnv) Update(key, value string) {
+func (e Env) Update(key, value string) {
 	e[key] = value
 }
 
@@ -45,8 +45,8 @@ func (e SioWSEnv) Update(key, value string) {
 // merges them with environment-specific variables,
 // and sets the environment variables to the system.
 // It returns the merged environment.
-func NewEnvironment() SioWSEnv {
-	env := make(SioWSEnv)
+func NewEnvironment() Env {
+	env := make(Env)
 	env = env.readEnvironment()
 	env.setEnvToSystem()
 
@@ -55,7 +55,7 @@ func NewEnvironment() SioWSEnv {
 
 // readEnvironment reads the environment configuration by merging the default environment file,
 // the current environment file, and setting the environment variables
-func (e SioWSEnv) readEnvironment() SioWSEnv {
+func (e Env) readEnvironment() Env {
 	defaultEnvMap := readDefaultEnvFile()
 	defaultEnvMap.setEnvToSystem()
 
@@ -70,7 +70,7 @@ func (e SioWSEnv) readEnvironment() SioWSEnv {
 // setEnvToSystem sets the environment variables in the SioWSEnv map to the system.
 // It iterates over the key-value pairs in the map and uses os.Setenv to set each variable.
 // If there is an error setting the variable, it panics with the error.
-func (e SioWSEnv) setEnvToSystem() {
+func (e Env) setEnvToSystem() {
 	for key, value := range e {
 		err := os.Setenv(key, value)
 		if err != nil {
@@ -81,7 +81,7 @@ func (e SioWSEnv) setEnvToSystem() {
 
 // readDefaultEnvFile reads the default environment file located at DefaultFilePath and returns its contents as a SioWSEnv map.
 // If the file cannot be read or an error occurs, it logs the error and panics with ErrNoEnvFile.
-func readDefaultEnvFile() SioWSEnv {
+func readDefaultEnvFile() Env {
 	defaultEnvFile, err := godotenv.Read(DefaultFilePath)
 	if err != nil {
 		dotEnvErr := fmt.Errorf("dot env err: %w", err)
@@ -96,7 +96,7 @@ func readDefaultEnvFile() SioWSEnv {
 // readEnvironmentSpecificFile reads the environment-specific file based on the given environment.
 // It takes an `env` string parameter indicating the environment.
 // It returns an instance of the `SioWSEnv` type that represents the environment-specific file.
-func readEnvironmentSpecificFile(env string) SioWSEnv {
+func readEnvironmentSpecificFile(env string) Env {
 	fileName := fmt.Sprintf(CurrentEnvFilePath, env)
 
 	defaultEnvFile, err := godotenv.Read(fileName)

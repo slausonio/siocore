@@ -8,9 +8,9 @@ import (
 	"testing"
 )
 
-var currentEnvMap = SioWSEnv{"test1": "test", "test2": "test2"}
+var currentEnvMap = Env{"test1": "test", "test2": "test2"}
 
-var happyEnvMap = SioWSEnv{
+var happyEnvMap = Env{
 	EnvKeyCurrentEnv: "test",
 	EnvKeyAppName:    "go-webserver",
 	EnvKeyPort:       "8080",
@@ -56,25 +56,25 @@ func TestNewEnvironment(t *testing.T) {
 func TestSioWSEnv_Value(t *testing.T) {
 	tt := []struct {
 		name     string
-		env      SioWSEnv
+		env      Env
 		key      string
 		expected string
 	}{
 		{
 			name:     "Existing Key",
-			env:      SioWSEnv{"existingKey": "existingValue"},
+			env:      Env{"existingKey": "existingValue"},
 			key:      "existingKey",
 			expected: "existingValue",
 		},
 		{
 			name:     "Non-Existing Key",
-			env:      SioWSEnv{"existingKey": "existingValue"},
+			env:      Env{"existingKey": "existingValue"},
 			key:      "nonExistingKey",
 			expected: "",
 		},
 		{
 			name:     "Empty Key",
-			env:      SioWSEnv{"": "emptyKey"},
+			env:      Env{"": "emptyKey"},
 			key:      "",
 			expected: "emptyKey",
 		},
