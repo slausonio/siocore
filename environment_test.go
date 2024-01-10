@@ -97,6 +97,3 @@ func TestAppEnv_Value(t *testing.T) {
 	}
 }
 
-func TestAppEnv_Env(t *testing.T) {
-
-}
