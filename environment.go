@@ -39,11 +39,21 @@ func (e Env) Update(key, value string) {
 	e[key] = value
 }
 
+// setToSystem sets the environment variables in the SioWSEnv map to the system.
+// It iterates over the key-value pairs in the map and uses os.Setenv to set each variable.
+// If there is an error setting the variable, it panics with the error.
+func (e Env) setToSystem() {
+	for key, value := range e {
+		err := os.Setenv(key, value)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 type AppEnv struct {
-	defaultEnv Env
-	currentEnv Env
-	mergedEnv  Env
-	log        *slog.Logger
+	env Env
+	log *slog.Logger
 }
 
 // NewEnvironment creates a new SioWSEnv environment.
@@ -55,40 +65,30 @@ func NewAppEnv(log *slog.Logger) *AppEnv {
 	appEnv := &AppEnv{log: log}
 	env := appEnv.readEnvironment()
 
-	env.setEnvToSystem()
+	env.setToSystem()
 
 	return &AppEnv{
-		defaultEnv: env,
-		log:        log,
+		env: env,
+		log: log,
 	}
+}
+
+func (ae *AppEnv) Env() Env {
+	return ae.env
 }
 
 // readEnvironment reads the environment configuration by merging the default environment file,
 // the current environment file, and setting the environment variables
 func (ae *AppEnv) readEnvironment() Env {
 	defaultEnvMap := readDefaultEnvFile(ae.log)
-	defaultEnvMap.setEnvToSystem()
-	ae.defaultEnv = defaultEnvMap
+	defaultEnvMap.setToSystem()
 
 	currentEnv := readDefaultEnvFile(ae.log)
 	currentEnvMap := readEnvironmentSpecificFile(currentEnv.Value(EnvKeyCurrentEnv), ae.log)
-	ae.currentEnv = currentEnvMap
 
 	mergedEnv := MergeMaps(defaultEnvMap, currentEnvMap)
 
 	return mergedEnv
-}
-
-// setEnvToSystem sets the environment variables in the SioWSEnv map to the system.
-// It iterates over the key-value pairs in the map and uses os.Setenv to set each variable.
-// If there is an error setting the variable, it panics with the error.
-func (e Env) setEnvToSystem() {
-	for key, value := range e {
-		err := os.Setenv(key, value)
-		if err != nil {
-			panic(err)
-		}
-	}
 }
 
 // readDefaultEnvFile reads the default environment file located at DefaultFilePath and returns its contents as a SioWSEnv map.
@@ -96,7 +96,7 @@ func (e Env) setEnvToSystem() {
 func readDefaultEnvFile(log *slog.Logger) Env {
 	defaultEnvFile, err := godotenv.Read(DefaultFilePath)
 	if err != nil {
-		log.Error("dotenv error: ", slog.AnyValue(err))
+		log.Error("default .env dotenv error: ", err)
 		panic(ErrNoEnvFile)
 	}
 
@@ -111,7 +111,7 @@ func readEnvironmentSpecificFile(env string, log *slog.Logger) Env {
 
 	defaultEnvFile, err := godotenv.Read(fileName)
 	if err != nil {
-		log.Info("dotenv error: ", slog.AnyValue(err))
+		log.Info("environment specific .env dotenv error: ", err)
 	}
 
 	return defaultEnvFile

@@ -2,15 +2,18 @@ package siocore
 
 import (
 	"fmt"
-	"github.com/slausonio/siotest"
-	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"os"
 	"testing"
+
+	"github.com/slausonio/siotest"
+	"github.com/stretchr/testify/assert"
 )
 
-var currentEnvMap = Environment{"test1": "test", "test2": "test2"}
+var testLogger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+var currentEnvMap = Env{"test1": "test", "test2": "test2"}
 
-var happyEnvMap = Environment{
+var happyEnvMap = Env{
 	EnvKeyCurrentEnv: "test",
 	EnvKeyAppName:    "go-webserver",
 	EnvKeyPort:       "8080",
@@ -35,7 +38,7 @@ func EnvCleanup(t *testing.T) {
 	})
 }
 
-func TestNewEnvironment(t *testing.T) {
+func TestNewEnv(t *testing.T) {
 	checkOsFunc := func() {
 		for key, value := range happyEnvMap {
 			os.Getenv(key)
@@ -45,7 +48,8 @@ func TestNewEnvironment(t *testing.T) {
 	EnvSetup(t)
 	EnvCleanup(t)
 
-	env := NewAppEnv()
+	appEnv := NewAppEnv(testLogger)
+	env := appEnv.Env()
 	assert.Equalf(t, env.Value(EnvKeyCurrentEnv), "test", "expected %v, got %v", env.Value(EnvKeyCurrentEnv), "test")
 	assert.Equalf(t, env.Value(EnvKeyAppName), "go-webserver", "expected %v, got %v", env.Value(EnvKeyAppName), "go-webserver")
 	assert.Equalf(t, env.Value(EnvKeyPort), "8080", "expected %v, got %v", env.Value(EnvKeyPort), "8080")
@@ -56,25 +60,25 @@ func TestNewEnvironment(t *testing.T) {
 func TestSioWSEnv_Value(t *testing.T) {
 	tt := []struct {
 		name     string
-		env      Environment
+		env      Env
 		key      string
 		expected string
 	}{
 		{
 			name:     "Existing Key",
-			env:      Environment{"existingKey": "existingValue"},
+			env:      Env{"existingKey": "existingValue"},
 			key:      "existingKey",
 			expected: "existingValue",
 		},
 		{
 			name:     "Non-Existing Key",
-			env:      Environment{"existingKey": "existingValue"},
+			env:      Env{"existingKey": "existingValue"},
 			key:      "nonExistingKey",
 			expected: "",
 		},
 		{
 			name:     "Empty Key",
-			env:      Environment{"": "emptyKey"},
+			env:      Env{"": "emptyKey"},
 			key:      "",
 			expected: "emptyKey",
 		},

@@ -7,7 +7,7 @@ import (
 	"log/slog"
 )
 
-func NewLokiClient(env siocore.Environment) (*slog.Logger, *loki.Client) {
+func NewLokiClient(env siocore.Env) (*slog.Logger, *loki.Client) {
 	config, _ := loki.NewDefaultConfig(env.Value(siocore.EnvKeyLokiHost))
 	config.TenantID = "xyz"
 	client, _ := loki.New(config)
