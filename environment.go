@@ -55,7 +55,7 @@ func NewAppEnv(log *slog.Logger) *AppEnv {
 	appEnv := &AppEnv{log: log}
 	env := appEnv.readEnvironment()
 
-	appEnv.setEnvToSystem()
+	env.setEnvToSystem()
 
 	return &AppEnv{
 		defaultEnv: env,
