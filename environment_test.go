@@ -38,7 +38,7 @@ func EnvCleanup(t *testing.T) {
 	})
 }
 
-func TestNewEnv(t *testing.T) {
+func TestAppNewEnv(t *testing.T) {
 	checkOsFunc := func() {
 		for key, value := range happyEnvMap {
 			os.Getenv(key)
@@ -50,6 +50,8 @@ func TestNewEnv(t *testing.T) {
 
 	appEnv := NewAppEnv(testLogger)
 	env := appEnv.Env()
+	assert.NotNilf(t, appEnv.Env(), "expected app env to not be nil")
+
 	assert.Equalf(t, env.Value(EnvKeyCurrentEnv), "test", "expected %v, got %v", env.Value(EnvKeyCurrentEnv), "test")
 	assert.Equalf(t, env.Value(EnvKeyAppName), "go-webserver", "expected %v, got %v", env.Value(EnvKeyAppName), "go-webserver")
 	assert.Equalf(t, env.Value(EnvKeyPort), "8080", "expected %v, got %v", env.Value(EnvKeyPort), "8080")
@@ -57,7 +59,7 @@ func TestNewEnv(t *testing.T) {
 	checkOsFunc()
 }
 
-func TestSioWSEnv_Value(t *testing.T) {
+func TestAppEnv_Value(t *testing.T) {
 	tt := []struct {
 		name     string
 		env      Env
@@ -93,4 +95,8 @@ func TestSioWSEnv_Value(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAppEnv_Env(t *testing.T) {
+
 }
