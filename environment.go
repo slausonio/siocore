@@ -3,11 +3,10 @@ package siocore
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
-	"github.com/slausonio/siogo"
 )
 
 const (
@@ -40,29 +39,42 @@ func (e Env) Update(key, value string) {
 	e[key] = value
 }
 
+type AppEnv struct {
+	defaultEnv Env
+	currentEnv Env
+	mergedEnv  Env
+	log        *slog.Logger
+}
+
 // NewEnvironment creates a new SioWSEnv environment.
 // It reads the default environment variables from a file,
 // merges them with environment-specific variables,
 // and sets the environment variables to the system.
 // It returns the merged environment.
-func NewEnvironment() Env {
-	env := make(Env)
-	env = env.readEnvironment()
-	env.setEnvToSystem()
+func NewAppEnv(log *slog.Logger) *AppEnv {
+	appEnv := &AppEnv{log: log}
+	env := appEnv.readEnvironment()
 
-	return env
+	appEnv.setEnvToSystem()
+
+	return &AppEnv{
+		defaultEnv: env,
+		log:        log,
+	}
 }
 
 // readEnvironment reads the environment configuration by merging the default environment file,
 // the current environment file, and setting the environment variables
-func (e Env) readEnvironment() Env {
-	defaultEnvMap := readDefaultEnvFile()
+func (ae *AppEnv) readEnvironment() Env {
+	defaultEnvMap := readDefaultEnvFile(ae.log)
 	defaultEnvMap.setEnvToSystem()
+	ae.defaultEnv = defaultEnvMap
 
-	currentEnv := readCurrentEnv()
-	currentEnvMap := readEnvironmentSpecificFile(currentEnv)
+	currentEnv := readDefaultEnvFile(ae.log)
+	currentEnvMap := readEnvironmentSpecificFile(currentEnv.Value(EnvKeyCurrentEnv), ae.log)
+	ae.currentEnv = currentEnvMap
 
-	mergedEnv := siogo.MergeMaps(defaultEnvMap, currentEnvMap)
+	mergedEnv := MergeMaps(defaultEnvMap, currentEnvMap)
 
 	return mergedEnv
 }
@@ -81,12 +93,10 @@ func (e Env) setEnvToSystem() {
 
 // readDefaultEnvFile reads the default environment file located at DefaultFilePath and returns its contents as a SioWSEnv map.
 // If the file cannot be read or an error occurs, it logs the error and panics with ErrNoEnvFile.
-func readDefaultEnvFile() Env {
+func readDefaultEnvFile(log *slog.Logger) Env {
 	defaultEnvFile, err := godotenv.Read(DefaultFilePath)
 	if err != nil {
-		dotEnvErr := fmt.Errorf("dot env err: %w", err)
-
-		logrus.Error(dotEnvErr)
+		log.Error("dotenv error: ", slog.AnyValue(err))
 		panic(ErrNoEnvFile)
 	}
 
@@ -96,13 +106,12 @@ func readDefaultEnvFile() Env {
 // readEnvironmentSpecificFile reads the environment-specific file based on the given environment.
 // It takes an `env` string parameter indicating the environment.
 // It returns an instance of the `SioWSEnv` type that represents the environment-specific file.
-func readEnvironmentSpecificFile(env string) Env {
+func readEnvironmentSpecificFile(env string, log *slog.Logger) Env {
 	fileName := fmt.Sprintf(CurrentEnvFilePath, env)
 
 	defaultEnvFile, err := godotenv.Read(fileName)
 	if err != nil {
-		dotEnvErr := fmt.Errorf("dot env err: %w", err)
-		logrus.Info(dotEnvErr)
+		log.Info("dotenv error: ", slog.AnyValue(err))
 	}
 
 	return defaultEnvFile
@@ -111,12 +120,12 @@ func readEnvironmentSpecificFile(env string) Env {
 // readCurrentEnv reads the value of the `CURRENT_ENV` environment variable.
 // If the environment variable is not found, it raises an error and panics.
 // It returns the value of the `CURRENT_ENV` environment variable.
-func readCurrentEnv() string {
+func readCurrentEnv(log *slog.Logger) string {
 	appName, ok := os.LookupEnv(EnvKeyCurrentEnv)
 	if !ok {
 		err := fmt.Errorf("new environment: %w", ErrNoCurrentEnv)
 
-		logrus.Error(err)
+		log.Error(err.Error())
 		panic(err)
 	}
 
@@ -127,12 +136,12 @@ func readCurrentEnv() string {
 // which is the key for the application name.
 // If the environment variable is not found, it logs an error and panics with an error message.
 // It returns the value of the environment variable as a string.
-func readAppName() string {
+func readAppName(log *slog.Logger) string {
 	appName, ok := os.LookupEnv(EnvKeyAppName)
 	if !ok {
 		err := fmt.Errorf("new environment: %w", ErrNoAppName)
 
-		logrus.Error(err)
+		log.Error(err.Error())
 		panic(err)
 	}
 

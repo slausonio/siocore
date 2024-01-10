@@ -8,9 +8,9 @@ import (
 	"testing"
 )
 
-var currentEnvMap = Env{"test1": "test", "test2": "test2"}
+var currentEnvMap = Environment{"test1": "test", "test2": "test2"}
 
-var happyEnvMap = Env{
+var happyEnvMap = Environment{
 	EnvKeyCurrentEnv: "test",
 	EnvKeyAppName:    "go-webserver",
 	EnvKeyPort:       "8080",
@@ -45,7 +45,7 @@ func TestNewEnvironment(t *testing.T) {
 	EnvSetup(t)
 	EnvCleanup(t)
 
-	env := NewEnvironment()
+	env := NewAppEnv()
 	assert.Equalf(t, env.Value(EnvKeyCurrentEnv), "test", "expected %v, got %v", env.Value(EnvKeyCurrentEnv), "test")
 	assert.Equalf(t, env.Value(EnvKeyAppName), "go-webserver", "expected %v, got %v", env.Value(EnvKeyAppName), "go-webserver")
 	assert.Equalf(t, env.Value(EnvKeyPort), "8080", "expected %v, got %v", env.Value(EnvKeyPort), "8080")
@@ -56,25 +56,25 @@ func TestNewEnvironment(t *testing.T) {
 func TestSioWSEnv_Value(t *testing.T) {
 	tt := []struct {
 		name     string
-		env      Env
+		env      Environment
 		key      string
 		expected string
 	}{
 		{
 			name:     "Existing Key",
-			env:      Env{"existingKey": "existingValue"},
+			env:      Environment{"existingKey": "existingValue"},
 			key:      "existingKey",
 			expected: "existingValue",
 		},
 		{
 			name:     "Non-Existing Key",
-			env:      Env{"existingKey": "existingValue"},
+			env:      Environment{"existingKey": "existingValue"},
 			key:      "nonExistingKey",
 			expected: "",
 		},
 		{
 			name:     "Empty Key",
-			env:      Env{"": "emptyKey"},
+			env:      Environment{"": "emptyKey"},
 			key:      "",
 			expected: "emptyKey",
 		},
