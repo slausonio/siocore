@@ -56,21 +56,18 @@ type AppEnv struct {
 	log *slog.Logger
 }
 
-// NewEnvironment creates a new SioWSEnv environment.
+// NewAppEnv creates a new SioWSEnv environment.
 // It reads the default environment variables from a file,
 // merges them with environment-specific variables,
 // and sets the environment variables to the system.
 // It returns the merged environment.
-func NewAppEnv(log *slog.Logger) *AppEnv {
-	appEnv := &AppEnv{log: log}
+func NewAppEnv() *AppEnv {
+	appEnv := &AppEnv{}
 	env := appEnv.readEnvironment()
 
 	env.setToSystem()
 
-	return &AppEnv{
-		env: env,
-		log: log,
-	}
+	return appEnv
 }
 
 func (ae *AppEnv) Env() Env {
@@ -80,10 +77,10 @@ func (ae *AppEnv) Env() Env {
 // readEnvironment reads the environment configuration by merging the default environment file,
 // the current environment file, and setting the environment variables
 func (ae *AppEnv) readEnvironment() Env {
-	defaultEnvMap := readDefaultEnvFile(ae.log)
+	defaultEnvMap := readDefaultEnvFile()
 	defaultEnvMap.setToSystem()
 
-	currentEnv := readDefaultEnvFile(ae.log)
+	currentEnv := readDefaultEnvFile()
 	currentEnvMap := readEnvironmentSpecificFile(currentEnv.Value(EnvKeyCurrentEnv), ae.log)
 
 	mergedEnv := MergeMaps(defaultEnvMap, currentEnvMap)
@@ -93,10 +90,10 @@ func (ae *AppEnv) readEnvironment() Env {
 
 // readDefaultEnvFile reads the default environment file located at DefaultFilePath and returns its contents as a SioWSEnv map.
 // If the file cannot be read or an error occurs, it logs the error and panics with ErrNoEnvFile.
-func readDefaultEnvFile(log *slog.Logger) Env {
+func readDefaultEnvFile() Env {
 	defaultEnvFile, err := godotenv.Read(DefaultFilePath)
 	if err != nil {
-		log.Error("default .env dotenv error: ", err)
+		//log.Error("default .env dotenv error: ", err)
 		panic(ErrNoEnvFile)
 	}
 
@@ -111,7 +108,7 @@ func readEnvironmentSpecificFile(env string, log *slog.Logger) Env {
 
 	defaultEnvFile, err := godotenv.Read(fileName)
 	if err != nil {
-		log.Info("environment specific .env dotenv error: ", err)
+		//log.Info("environment specific .env dotenv error: ", err)
 	}
 
 	return defaultEnvFile
@@ -125,7 +122,7 @@ func readCurrentEnv(log *slog.Logger) string {
 	if !ok {
 		err := fmt.Errorf("new environment: %w", ErrNoCurrentEnv)
 
-		log.Error(err.Error())
+		//log.Error(err.Error())
 		panic(err)
 	}
 
@@ -141,7 +138,7 @@ func readAppName(log *slog.Logger) string {
 	if !ok {
 		err := fmt.Errorf("new environment: %w", ErrNoAppName)
 
-		log.Error(err.Error())
+		//log.Error(err.Error())
 		panic(err)
 	}
 

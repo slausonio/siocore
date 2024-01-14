@@ -3,9 +3,9 @@ module github.com/slausonio/siocore
 go 1.21.5
 
 require (
+	github.com/grafana/loki-client-go v0.0.0-20230116142646-e7494d0ef70c
 	github.com/joho/godotenv v1.5.1
-	github.com/sirupsen/logrus v1.9.3
-	github.com/slausonio/siogo v0.0.1
+	github.com/samber/slog-loki/v3 v3.2.0
 	github.com/slausonio/siotest v0.0.4
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
@@ -22,7 +22,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/grafana/loki-client-go v0.0.0-20230116142646-e7494d0ef70c // indirect
 	github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -40,7 +39,6 @@ require (
 	github.com/prometheus/prometheus v0.35.0 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/samber/slog-common v0.14.0 // indirect
-	github.com/samber/slog-loki/v3 v3.2.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/goleak v1.2.1 // indirect
 	golang.org/x/net v0.17.0 // indirect
