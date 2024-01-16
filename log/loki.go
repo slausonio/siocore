@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrNoLokiHost = errors.New("no CURRENT_ENV env var found")
+	ErrNoLokiHost = errors.New("no LOKI_HOST env var found")
 )
 
 func NewLokiClient(env siocore.Env) (*slog.Logger, *loki.Client) {
