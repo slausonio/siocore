@@ -63,9 +63,7 @@ type AppEnv struct {
 // It returns the merged environment.
 func NewAppEnv() *AppEnv {
 	appEnv := &AppEnv{}
-	env := appEnv.readEnvironment()
-
-	env.setToSystem()
+	appEnv.readEnvironment()
 
 	return appEnv
 }
@@ -76,7 +74,7 @@ func (ae *AppEnv) Env() Env {
 
 // readEnvironment reads the environment configuration by merging the default environment file,
 // the current environment file, and setting the environment variables
-func (ae *AppEnv) readEnvironment() Env {
+func (ae *AppEnv) readEnvironment() {
 	defaultEnvMap := readDefaultEnvFile()
 	defaultEnvMap.setToSystem()
 
@@ -85,7 +83,7 @@ func (ae *AppEnv) readEnvironment() Env {
 
 	mergedEnv := MergeMaps(defaultEnvMap, currentEnvMap)
 
-	return mergedEnv
+	ae.env = mergedEnv
 }
 
 // readDefaultEnvFile reads the default environment file located at DefaultFilePath and returns its contents as a SioWSEnv map.
