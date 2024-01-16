@@ -39,6 +39,15 @@ func (e Env) Update(key, value string) {
 	e[key] = value
 }
 
+func (e Env) LookupValue(key string) (string, bool) {
+	val := e.Value(key)
+	if val == "" {
+		return "", false
+	}
+
+	return val, true
+}
+
 // setToSystem sets the environment variables in the SioWSEnv map to the system.
 // It iterates over the key-value pairs in the map and uses os.Setenv to set each variable.
 // If there is an error setting the variable, it panics with the error.

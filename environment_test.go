@@ -2,7 +2,6 @@ package siocore
 
 import (
 	"fmt"
-	"log/slog"
 	"os"
 	"testing"
 
@@ -10,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testLogger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 var currentEnvMap = Env{"test1": "test", "test2": "test2"}
 
 var happyEnvMap = Env{
@@ -48,7 +46,7 @@ func TestAppNewEnv(t *testing.T) {
 	EnvSetup(t)
 	EnvCleanup(t)
 
-	appEnv := NewAppEnv(testLogger)
+	appEnv := NewAppEnv()
 	env := appEnv.Env()
 	assert.NotNilf(t, appEnv.Env(), "expected app env to not be nil")
 
@@ -97,3 +95,63 @@ func TestAppEnv_Value(t *testing.T) {
 	}
 }
 
+func TestAppEnv_LookupValue(t *testing.T) {
+	tt := []struct {
+		name        string
+		env         Env
+		key         string
+		expectedVal string
+		valExists   bool
+	}{
+		{
+			name:        "Existing Key",
+			env:         Env{"existingKey": "existingValue"},
+			key:         "existingKey",
+			expectedVal: "existingValue",
+			valExists:   true,
+		},
+		{
+			name:        "Non-Existing Key",
+			env:         Env{"existingKey": "existingValue"},
+			key:         "nonExistingKey",
+			expectedVal: "",
+			valExists:   false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			value, ok := tc.env.LookupValue(tc.key)
+
+			if ok != tc.valExists {
+				t.Errorf("expected: %v, got %v", tc.valExists, ok)
+			}
+
+			if value != tc.expectedVal {
+				t.Errorf("expected: %s, got: %s", tc.expectedVal, value)
+			}
+		})
+	}
+}
+
+func TestAppEnv_Update(t *testing.T) {
+
+	t.Run("happy", func(t *testing.T) {
+		testKey := "test"
+		testVal1 := "test1"
+		testVal2 := "test2"
+		env := Env{testKey: testVal1}
+
+		value := env.Value(testKey)
+		if value != testVal1 {
+			t.Errorf("expected: %s, got: %s", testVal1, value)
+		}
+
+		env.Update(testKey, testVal2)
+		value = env.Value(testKey)
+		if value != testVal2 {
+			t.Errorf("expected: %s, got: %s", testVal1, value)
+		}
+	})
+
+}

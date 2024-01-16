@@ -23,3 +23,4 @@ go.work
 /.idea/modules.xml
 /.idea/siocore.iml
 /.idea/vcs.xml
+.idea
