@@ -50,9 +50,30 @@ func TestAppNewEnv(t *testing.T) {
 	env := appEnv.Env()
 	assert.NotNilf(t, appEnv.Env(), "expected app env to not be nil")
 
-	assert.Equalf(t, env.Value(EnvKeyCurrentEnv), "test", "expected %v, got %v", env.Value(EnvKeyCurrentEnv), "test")
-	assert.Equalf(t, env.Value(EnvKeyAppName), "go-webserver", "expected %v, got %v", env.Value(EnvKeyAppName), "go-webserver")
-	assert.Equalf(t, env.Value(EnvKeyPort), "8080", "expected %v, got %v", env.Value(EnvKeyPort), "8080")
+	assert.Equalf(
+		t,
+		env.Value(EnvKeyCurrentEnv),
+		"test",
+		"expected %v, got %v",
+		env.Value(EnvKeyCurrentEnv),
+		"test",
+	)
+	assert.Equalf(
+		t,
+		env.Value(EnvKeyAppName),
+		"go-webserver",
+		"expected %v, got %v",
+		env.Value(EnvKeyAppName),
+		"go-webserver",
+	)
+	assert.Equalf(
+		t,
+		env.Value(EnvKeyPort),
+		"8080",
+		"expected %v, got %v",
+		env.Value(EnvKeyPort),
+		"8080",
+	)
 
 	checkOsFunc()
 }
@@ -130,6 +151,41 @@ func TestAppEnv_LookupValue(t *testing.T) {
 			if value != tc.expectedVal {
 				t.Errorf("expected: %s, got: %s", tc.expectedVal, value)
 			}
+		})
+	}
+}
+
+func TestAppEnv_CheckValues(t *testing.T) {
+	tt := []struct {
+		name      string
+		env       Env
+		keys      []string
+		valExists bool
+	}{
+		{
+			name:      "Existing Key",
+			env:       Env{"existingKey": "existingValue"},
+			keys:      []string{"existingKey"},
+			valExists: true,
+		},
+		{
+			name:      "Non-Existing Key",
+			env:       Env{"existingKey": "existingValue"},
+			keys:      []string{"fake"},
+			valExists: false,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r == nil && !tc.valExists {
+					t.Errorf("The function did not panic")
+				}
+			}()
+
+			tc.env.ValuesPresent(tc.keys)
+
 		})
 	}
 }

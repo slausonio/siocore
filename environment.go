@@ -48,6 +48,21 @@ func (e Env) LookupValue(key string) (string, bool) {
 	return val, true
 }
 
+// ValuesPresent validates required authz variables are present.  If not, the thread will panic
+func (e Env) ValuesPresent(oauthEnvVarKeys []string) {
+	for _, key := range oauthEnvVarKeys {
+		value, present := e.LookupValue(key)
+		if !present || value == "" {
+			panic(
+				fmt.Sprintf(
+					"The environment variable %s is not present.\n Unable to start application.",
+					key,
+				),
+			)
+		}
+	}
+}
+
 // setToSystem sets the environment variables in the SioWSEnv map to the system.
 // It iterates over the key-value pairs in the map and uses os.Setenv to set each variable.
 // If there is an error setting the variable, it panics with the error.
