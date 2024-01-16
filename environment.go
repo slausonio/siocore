@@ -49,8 +49,8 @@ func (e Env) LookupValue(key string) (string, bool) {
 }
 
 // ValuesPresent validates required authz variables are present.  If not, the thread will panic
-func (e Env) ValuesPresent(oauthEnvVarKeys []string) {
-	for _, key := range oauthEnvVarKeys {
+func (e Env) ValuesPresent(envVarKeys []string) {
+	for _, key := range envVarKeys {
 		value, present := e.LookupValue(key)
 		if !present || value == "" {
 			panic(
