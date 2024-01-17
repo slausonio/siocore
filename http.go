@@ -1,26 +1,25 @@
 //go:generate mockery --name HttpHelpers --inpackage --case underscore
-package siogo
+package siocore
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 )
 
 type RestHelpers struct {
 	client *http.Client
+	log    *slog.Logger
 }
 
-
-func NewRestHelpers() *RestHelpers {
+func NewRestHelpers(log *slog.Logger) *RestHelpers {
 	return &RestHelpers{
 		client: http.DefaultClient,
+		log:    log,
 	}
 }
 
@@ -87,13 +86,6 @@ func (r *RestHelpers) ParseResponse(resp *http.Response, v interface{}) error {
 	return nil
 }
 
-func (r *RestHelpers) AbortWithError(err error, code int, c *gin.Context) {
-	e := c.AbortWithError(code, err)
-	if e != nil {
-		log.Fatalf("Error aborting with error: %v", e)
-	}
-}
-
 func (r *RestHelpers) ExecuteRequest(req *http.Request) (*http.Response, error) {
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -116,7 +108,7 @@ func (r *RestHelpers) HandleResponse(resp *http.Response) (*http.Response, error
 	if resp.StatusCode >= 400 {
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Errorf(err.Error())
+			r.log.Error(err.Error())
 		}
 
 		return nil, NewAppError(string(b), resp.StatusCode)
@@ -125,23 +117,28 @@ func (r *RestHelpers) HandleResponse(resp *http.Response) (*http.Response, error
 	return resp, nil
 }
 
-func DecryptAndHandle(request interface{}, c *gin.Context) error {
-	enc := NewEncryptionUtil()
-	err := c.BindJSON(&request)
-	if err != nil {
-		return err
-	}
-
-	err = enc.DecryptInterface(request)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
+// func DecryptAndHandle(request interface{}, c *gin.Context) error {
+// 	enc := NewEncryptionUtil()
+// 	err := c.BindJSON(&request)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	err = enc.DecryptInterface(request)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	return nil
+// }
 
 // BuildRequest creates a new http.Request with the given method, url and bodyReader. Also, adding the required headers.
-func BuildRequest(method string, url string, bodyReader *strings.Reader, accessToken string) (*http.Request, error) {
+func BuildRequest(
+	method string,
+	url string,
+	bodyReader *strings.Reader,
+	accessToken string,
+) (*http.Request, error) {
 	req, err := http.NewRequest(method, url, bodyReader)
 	if err != nil {
 		return nil, fmt.Errorf("error creating http request request: %w", err)
@@ -154,7 +151,12 @@ func BuildRequest(method string, url string, bodyReader *strings.Reader, accessT
 }
 
 // BuildRequestWithBody marshals an interface and creates http.Request with body.
-func BuildRequestWithBody(method string, url string, reqBody any, accessToken string) (*http.Request, error) {
+func BuildRequestWithBody(
+	method string,
+	url string,
+	reqBody any,
+	accessToken string,
+) (*http.Request, error) {
 	rJSON, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("error creating http request request: %w", err)
