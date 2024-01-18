@@ -13,13 +13,11 @@ import (
 
 type RestHelpers struct {
 	client *http.Client
-	log    *slog.Logger
 }
 
-func NewRestHelpers(log *slog.Logger) *RestHelpers {
+func NewRestHelpers() *RestHelpers {
 	return &RestHelpers{
 		client: http.DefaultClient,
-		log:    log,
 	}
 }
 
@@ -108,7 +106,7 @@ func (r *RestHelpers) HandleResponse(resp *http.Response) (*http.Response, error
 	if resp.StatusCode >= 400 {
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
-			r.log.Error(err.Error())
+			slog.Error(err.Error())
 		}
 
 		return nil, NewAppError(string(b), resp.StatusCode)

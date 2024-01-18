@@ -2,17 +2,23 @@ package log
 
 import (
 	"errors"
+	"log/slog"
+
 	"github.com/grafana/loki-client-go/loki"
 	slogloki "github.com/samber/slog-loki/v3"
 	"github.com/slausonio/siocore"
-	"log/slog"
 )
 
 var (
 	ErrNoLokiHost = errors.New("no LOKI_HOST env var found")
 )
 
-func NewLokiClient(env siocore.Env) (*slog.Logger, *loki.Client) {
+type AppLogger struct {
+	logger *slog.Logger
+	client *loki.Client
+}
+
+func NewSlog(env siocore.Env) *AppLogger {
 	config, _ := loki.NewDefaultConfig(getLokiHost(env))
 	config.TenantID = "xyz"
 	client, _ := loki.New(config)
@@ -21,7 +27,15 @@ func NewLokiClient(env siocore.Env) (*slog.Logger, *loki.Client) {
 	logger = logger.
 		With("env", env.Value(siocore.EnvKeyCurrentEnv))
 
-	return logger, client
+	return &AppLogger{logger, client}
+}
+
+func (al *AppLogger) Logger() *slog.Logger {
+	return al.logger
+}
+
+func (al *AppLogger) SetAsDefault() {
+	slog.SetDefault(al.logger)
 }
 
 func getLokiHost(env siocore.Env) string {

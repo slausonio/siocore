@@ -77,7 +77,6 @@ func (e Env) setToSystem() {
 
 type AppEnv struct {
 	env Env
-	log *slog.Logger
 }
 
 // NewAppEnv creates a new SioWSEnv environment.
@@ -99,14 +98,16 @@ func (ae *AppEnv) Env() Env {
 // readEnvironment reads the environment configuration by merging the default environment file,
 // the current environment file, and setting the environment variables
 func (ae *AppEnv) readEnvironment() {
+	currentEnv := readCurrentEnv()
 	defaultEnvMap := readDefaultEnvFile()
 	defaultEnvMap.setToSystem()
 
-	currentEnv := readDefaultEnvFile()
-	currentEnvMap := readEnvironmentSpecificFile(currentEnv.Value(EnvKeyCurrentEnv), ae.log)
+	currentEnvMap := readEnvironmentSpecificFile(currentEnv)
+	currentEnvMap.setToSystem()
 
-	mergedEnv := MergeMaps(defaultEnvMap, currentEnvMap)
+	mergedEnv := MergeEnvs(defaultEnvMap, currentEnvMap)
 
+	mergedEnv.ValuesPresent([]string{EnvKeyAppName})
 	ae.env = mergedEnv
 }
 
@@ -115,7 +116,7 @@ func (ae *AppEnv) readEnvironment() {
 func readDefaultEnvFile() Env {
 	defaultEnvFile, err := godotenv.Read(DefaultFilePath)
 	if err != nil {
-		//log.Error("default .env dotenv error: ", err)
+		slog.Error(fmt.Sprintf("default .env dotenv error: %v", err))
 		panic(ErrNoEnvFile)
 	}
 
@@ -125,12 +126,12 @@ func readDefaultEnvFile() Env {
 // readEnvironmentSpecificFile reads the environment-specific file based on the given environment.
 // It takes an `env` string parameter indicating the environment.
 // It returns an instance of the `SioWSEnv` type that represents the environment-specific file.
-func readEnvironmentSpecificFile(env string, log *slog.Logger) Env {
+func readEnvironmentSpecificFile(env string) Env {
 	fileName := fmt.Sprintf(CurrentEnvFilePath, env)
 
 	defaultEnvFile, err := godotenv.Read(fileName)
 	if err != nil {
-		//log.Info("environment specific .env dotenv error: ", err)
+		slog.Info("environment specific .env dotenv error: ", err)
 	}
 
 	return defaultEnvFile
@@ -139,12 +140,12 @@ func readEnvironmentSpecificFile(env string, log *slog.Logger) Env {
 // readCurrentEnv reads the value of the `CURRENT_ENV` environment variable.
 // If the environment variable is not found, it raises an error and panics.
 // It returns the value of the `CURRENT_ENV` environment variable.
-func readCurrentEnv(log *slog.Logger) string {
+func readCurrentEnv() string {
 	appName, ok := os.LookupEnv(EnvKeyCurrentEnv)
 	if !ok {
 		err := fmt.Errorf("new environment: %w", ErrNoCurrentEnv)
 
-		//log.Error(err.Error())
+		slog.Error(err.Error())
 		panic(err)
 	}
 
@@ -155,12 +156,12 @@ func readCurrentEnv(log *slog.Logger) string {
 // which is the key for the application name.
 // If the environment variable is not found, it logs an error and panics with an error message.
 // It returns the value of the environment variable as a string.
-func readAppName(log *slog.Logger) string {
+func readAppName() string {
 	appName, ok := os.LookupEnv(EnvKeyAppName)
 	if !ok {
 		err := fmt.Errorf("new environment: %w", ErrNoAppName)
 
-		//log.Error(err.Error())
+		slog.Error(err.Error())
 		panic(err)
 	}
 
