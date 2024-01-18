@@ -28,3 +28,16 @@ func MergeMaps[K MapKeys, V any](maps ...map[K]V) map[K]V {
 
 	return result
 }
+
+// MergeEnvs takes in multiple envs and merges them into a single env.
+func MergeEnvs(envs ...Env) Env {
+	result := make(Env)
+
+	for _, e := range envs {
+		for key, value := range e {
+			result[key] = value
+		}
+	}
+
+	return result
+}

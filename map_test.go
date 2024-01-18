@@ -46,3 +46,45 @@ func TestMergeMaps(t *testing.T) {
 		})
 	}
 }
+
+func TestMergeEnvs(t *testing.T) {
+	tests := []struct {
+		name   string
+		envs   []Env
+		expect Env
+	}{
+		{
+			name:   "Nil",
+			envs:   nil,
+			expect: make(Env),
+		},
+		{
+			name:   "Empty",
+			envs:   []Env{},
+			expect: make(Env),
+		},
+		{
+			name:   "Single",
+			envs:   []Env{{"key": "1"}},
+			expect: Env{"key": "1"},
+		},
+		{
+			name:   "Multiple",
+			envs:   []Env{{"key1": "1"}, {"key2": "1"}},
+			expect: Env{"key1": "1", "key2": "1"},
+		},
+		{
+			name:   "Overlap",
+			envs:   []Env{{"key": "1"}, {"key": "1"}},
+			expect: Env{"key": "1"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := MergeEnvs(tt.envs...); !reflect.DeepEqual(got, tt.expect) {
+				t.Errorf("MergeMaps() = %v, want %v", got, tt.expect)
+			}
+		})
+	}
+}
