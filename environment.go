@@ -98,16 +98,16 @@ func (ae *AppEnv) Env() Env {
 // readEnvironment reads the environment configuration by merging the default environment file,
 // the current environment file, and setting the environment variables
 func (ae *AppEnv) readEnvironment() {
-	currentEnv := readCurrentEnv()
 	defaultEnvMap := readDefaultEnvFile()
 	defaultEnvMap.setToSystem()
 
-	currentEnvMap := readEnvironmentSpecificFile(currentEnv)
+	defaultEnvMap.ValuesPresent([]string{EnvKeyAppName, EnvKeyCurrentEnv})
+
+	currentEnvMap := readEnvironmentSpecificFile(defaultEnvMap.Value(EnvKeyCurrentEnv))
 	currentEnvMap.setToSystem()
 
 	mergedEnv := MergeEnvs(defaultEnvMap, currentEnvMap)
 
-	mergedEnv.ValuesPresent([]string{EnvKeyAppName})
 	ae.env = mergedEnv
 }
 
